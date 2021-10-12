@@ -35,7 +35,7 @@ def change_date_format(date):
 
 ua = UserAgent()
 useragent = ua.random
-query = ''
+query = '\'제11전투비행단\''
 
 params = {
     'where': 'news',
@@ -62,16 +62,18 @@ bot = telegram.Bot(token=config.telegram_token)
 base_url = 'https://search.naver.com/search.naver?'
 req = requests.get(base_url, params=params, headers={'User-Agent': useragent})
 soup = BeautifulSoup(req.text, 'html.parser')
-
 news_list = soup.select('div.group_news div.news_area')
 results = []
-fr = open('news.csv', 'r')
+fr = open('news.csv', 'r', encoding='utf-8')
 csv_reader = csv.reader(fr)
-recent_news = [row[4] for row in csv_reader][-1]
+try:
+    recent_news = [row[4] for row in csv_reader][-1]
+except IndexError:
+    recent_news = None
 
 # publishing_company 갯수가 2개 이상이면, 언론사와 네이버 뉴스 2곳에 보도된 기사임.
 # csv 파일과 네이버 뉴스 크롤링 순서가 반대라서 한가지로 통일하기 위해 크롤링 한 파일을 저장한 리스트를 csv에 저장하기 전에 순서를 뒤집어줌
-with open('news.csv', 'a', newline='') as fw:
+with open('news.csv', 'a', newline='', encoding='utf-8') as fw:
     csv_writer = csv.writer(fw)
     for news in news_list:
         publishing_company = news.select('a.info')
@@ -85,7 +87,7 @@ with open('news.csv', 'a', newline='') as fw:
             bot.sendMessage(chat_id=config.chat_id, text="최신 기사가 이미 저장되어 있기 때문에 종료합니다.")
             break
         results.append([publishing_company[0].text, date, is_published, title, url, description])
-        bot.sendMessage(chat_id=config.chat_id, text="""[{0}]\n {1}의 기사 1건이 보도되었습니다.\n title : {2} \n url :{3}""".format(date, publishing_company[0].text, title, url))
+        bot.sendMessage(chat_id=config.chat_id, text="""[{0}]\n {1}의 기사 1건이 보도되었습니다.\n 제목 : {2} \n 주소 :{3}""".format(date, publishing_company[0].text, title, url))
     results.reverse()
     csv_writer.writerows(results)
 

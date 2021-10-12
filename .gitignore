@@ -3,3 +3,4 @@ news.csv
 env
 __pycache__
 .vscode
+.idea
